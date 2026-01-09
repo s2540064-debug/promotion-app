@@ -1,23 +1,23 @@
-// 筆頭株主システムのユーティリティ
+// Major Shareholder System Utility
 
 export interface Shareholder {
   userId: string;
   userName: string;
-  investmentCount: number; // 投資回数
-  investmentAmount: number; // 投資総額（将来的に拡張可能）
-  rank: number; // 株主ランク（1=筆頭株主）
+  investmentCount: number; // Investment count
+  investmentAmount: number; // Total investment amount (expandable in future)
+  rank: number; // Shareholder rank (1 = major shareholder)
 }
 
 const STORAGE_KEY = 'promotion_shareholders';
 
-// 投資記録を保存
+// Investment record storage
 export interface InvestmentRecord {
   fromUserId: string;
   toUserId: string;
   timestamp: string;
 }
 
-// 投資を記録
+// Record investment
 export function recordInvestment(fromUserId: string, toUserId: string): void {
   if (typeof window === 'undefined') return;
   
@@ -33,7 +33,7 @@ export function recordInvestment(fromUserId: string, toUserId: string): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
-// ユーザーの株主一覧を取得（上位3名）
+// Get user's shareholder list (top 3)
 export function getShareholders(userId: string): Shareholder[] {
   if (typeof window === 'undefined') return [];
   
@@ -43,7 +43,7 @@ export function getShareholders(userId: string): Shareholder[] {
   try {
     const records: InvestmentRecord[] = JSON.parse(stored);
     
-    // 該当ユーザーへの投資を集計
+    // Aggregate investments to target user
     const investmentMap = new Map<string, number>();
     const userNameMap = new Map<string, string>();
     
@@ -51,22 +51,22 @@ export function getShareholders(userId: string): Shareholder[] {
       if (record.toUserId === userId) {
         const count = investmentMap.get(record.fromUserId) || 0;
         investmentMap.set(record.fromUserId, count + 1);
-        // ユーザー名は別途管理（実際の実装ではDBから取得）
-        userNameMap.set(record.fromUserId, `ユーザー${record.fromUserId.slice(-4)}`);
+        // User names managed separately (in actual implementation, fetch from DB)
+        userNameMap.set(record.fromUserId, `User${record.fromUserId.slice(-4)}`);
       }
     });
     
-    // 投資回数順にソート
+    // Sort by investment count
     const shareholders: Shareholder[] = Array.from(investmentMap.entries())
       .map(([userId, count], index) => ({
         userId,
-        userName: userNameMap.get(userId) || `ユーザー${userId.slice(-4)}`,
+        userName: userNameMap.get(userId) || `User${userId.slice(-4)}`,
         investmentCount: count,
-        investmentAmount: count, // 将来的に投資額を別途管理
+        investmentAmount: count, // In future, manage investment amount separately
         rank: index + 1,
       }))
       .sort((a, b) => b.investmentCount - a.investmentCount)
-      .slice(0, 3); // 上位3名
+      .slice(0, 3); // Top 3
     
     return shareholders;
   } catch {
@@ -74,16 +74,16 @@ export function getShareholders(userId: string): Shareholder[] {
   }
 }
 
-// 筆頭株主に配当を付与（昇進時）
+// Distribute dividend to major shareholder (on promotion)
 export function distributeDividend(
   userId: string,
   marketCap: number,
-  dividendRate: number = 0.05 // 5%の配当
+  dividendRate: number = 0.05 // 5% dividend
 ): { shareholderId: string; dividend: number } | null {
   const shareholders = getShareholders(userId);
   if (shareholders.length === 0) return null;
   
-  const topShareholder = shareholders[0]; // 筆頭株主
+  const topShareholder = shareholders[0]; // Major shareholder
   const dividend = Math.floor(marketCap * dividendRate);
   
   return {

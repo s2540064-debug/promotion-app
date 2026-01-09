@@ -1,4 +1,4 @@
-// 会社（Company）システムのユーティリティ
+// Company System Utility
 
 import { type Rank } from './rank';
 
@@ -19,15 +19,15 @@ export interface Company {
   logo?: string;
   createdAt: string;
   members: CompanyMember[];
-  ownerId: string; // 会社作成者のID
-  lockedCapital: number; // 出資金（ロックされた時価総額）
-  stage: CompanyStage; // 成長ステージ
-  isBankrupt: boolean; // 倒産状態
-  daysBelowThreshold: number; // ステージ維持条件未達成日数
-  lastCheckDate: string; // 最後にチェックした日付
+  ownerId: string; // Company creator ID
+  lockedCapital: number; // Capital (locked market cap)
+  stage: CompanyStage; // Growth stage
+  isBankrupt: boolean; // Bankruptcy status
+  daysBelowThreshold: number; // Days below stage maintenance threshold
+  lastCheckDate: string; // Last check date
 }
 
-// ステージ定義
+// Stage definitions
 export const STAGE_THRESHOLDS = {
   startup: { min: 10_000_000, maxMembers: 5 }, // 1,000万円〜
   venture: { min: 50_000_000, maxMembers: 20 }, // 5,000万円〜
@@ -35,14 +35,14 @@ export const STAGE_THRESHOLDS = {
   unicorn: { min: 1_000_000_000, maxMembers: Infinity }, // 10億円〜
 } as const;
 
-const CAPITAL_REQUIREMENT = 10_000_000; // 設立に必要な時価総額: 1,000万円
-const CAPITAL_LOCK = 2_000_000; // 出資金: 200万円
-const BANKRUPTCY_THRESHOLD_DAYS = 3; // 倒産までの日数
+const CAPITAL_REQUIREMENT = 10_000_000; // Required market cap for establishment: 10M yen
+const CAPITAL_LOCK = 2_000_000; // Capital: 2M yen
+const BANKRUPTCY_THRESHOLD_DAYS = 3; // Days until bankruptcy
 
 const STORAGE_KEY = 'promotion_companies';
 const MEMBER_STORAGE_KEY = 'promotion_user_company';
 
-// 会社一覧を取得
+// Get all companies
 export function getAllCompanies(): Company[] {
   if (typeof window === 'undefined') return [];
   
@@ -56,13 +56,13 @@ export function getAllCompanies(): Company[] {
   }
 }
 
-// 会社を保存
+// Save companies
 export function saveCompanies(companies: Company[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(companies));
 }
 
-// ユーザーの所属会社IDを取得
+// Get user's company ID
 export function getUserCompanyId(userId: string): string | null {
   if (typeof window === 'undefined') return null;
   
@@ -77,7 +77,7 @@ export function getUserCompanyId(userId: string): string | null {
   }
 }
 
-// ユーザーの所属会社を設定
+// Set user's company
 export function setUserCompany(userId: string, companyId: string | null): void {
   if (typeof window === 'undefined') return;
   
@@ -87,7 +87,7 @@ export function setUserCompany(userId: string, companyId: string | null): void {
   localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(data));
 }
 
-// 会社設立条件をチェック
+// Check company creation requirements
 export function checkCompanyCreationRequirements(
   marketCap: number,
   rank: Rank
@@ -95,7 +95,7 @@ export function checkCompanyCreationRequirements(
   const reasons: string[] = [];
   
   if (marketCap < CAPITAL_REQUIREMENT) {
-    reasons.push(`時価総額が不足しています（必要: ¥${CAPITAL_REQUIREMENT.toLocaleString()}、現在: ¥${marketCap.toLocaleString()}）`);
+    reasons.push(`Insufficient market cap (required: ¥${CAPITAL_REQUIREMENT.toLocaleString()}, current: ¥${marketCap.toLocaleString()})`);
   }
   
   const rankOrder: Rank[] = ["新人", "主任", "係長", "課長", "部長", "役員", "社長", "会長"];
@@ -103,7 +103,7 @@ export function checkCompanyCreationRequirements(
   const kachouIndex = rankOrder.indexOf("課長");
   
   if (rankIndex < kachouIndex) {
-    reasons.push(`役職が不足しています（必要: 課長以上、現在: ${rank}）`);
+    reasons.push(`Insufficient rank (required: Manager or above, current: ${rank})`);
   }
   
   return {
@@ -112,30 +112,30 @@ export function checkCompanyCreationRequirements(
   };
 }
 
-// 組織力係数を計算
+// Calculate organization factor
 export function calculateOrganizationFactor(company: Company): number {
-  // 全員がノルマ達成しているかチェック
+  // Check if all members met quota
   const allQuotaMet = company.members.every((member) => member.givenRespectsToday >= 3);
   
-  // 全員達成: 1.2、1人でも未達成: 0.8
+  // All met: 1.2, anyone not met: 0.8
   return allQuotaMet ? 1.2 : 0.8;
 }
 
-// 会社の時価総額を計算（組織力係数を含む）
+// Calculate company market cap (including organization factor)
 export function calculateCompanyMarketCap(company: Company): number {
   if (company.isBankrupt) return 0;
   
-  // 基本時価総額 = 全社員の時価総額の合計
+  // Base market cap = sum of all members' market caps
   const baseMarketCap = company.members.reduce((sum, member) => sum + member.marketCap, 0);
   
-  // 組織力係数を適用
+  // Apply organization factor
   const alpha = calculateOrganizationFactor(company);
   const adjustedMarketCap = baseMarketCap * alpha;
   
   return Math.floor(adjustedMarketCap);
 }
 
-// 会社のステージを決定
+// Determine company stage
 export function determineCompanyStage(marketCap: number): CompanyStage {
   if (marketCap >= STAGE_THRESHOLDS.unicorn.min) return "unicorn";
   if (marketCap >= STAGE_THRESHOLDS.listed.min) return "listed";
@@ -143,7 +143,7 @@ export function determineCompanyStage(marketCap: number): CompanyStage {
   return "startup";
 }
 
-// ステージ維持条件をチェック
+// Check stage maintenance requirements
 export function checkStageMaintenance(company: Company): {
   meetsThreshold: boolean;
   requiredMarketCap: number;
@@ -157,11 +157,11 @@ export function checkStageMaintenance(company: Company): {
   };
 }
 
-// 倒産チェックと処理
+// Check and process bankruptcy
 export function checkBankruptcy(company: Company, today: string): Company {
   if (company.isBankrupt) return company;
   
-  // 日付が変わった場合のみチェック
+  // Only check if date changed
   if (company.lastCheckDate === today) return company;
   
   const { meetsThreshold } = checkStageMaintenance(company);
@@ -169,27 +169,27 @@ export function checkBankruptcy(company: Company, today: string): Company {
   if (!meetsThreshold) {
     company.daysBelowThreshold += 1;
     
-    // 3日間連続で条件未達成の場合、倒産
+    // If conditions not met for 3 consecutive days, bankrupt
     if (company.daysBelowThreshold >= BANKRUPTCY_THRESHOLD_DAYS) {
       company.isBankrupt = true;
-      // 全社員を無職に戻し、役職を1ランクダウン
-      // 実際の実装では、各社員のデータを更新する必要がある
+      // Return all members to unemployed, demote rank by 1
+      // In actual implementation, need to update each member's data
     }
   } else {
-    // 条件を満たしている場合はリセット
+    // Reset if conditions are met
     company.daysBelowThreshold = 0;
   }
   
   company.lastCheckDate = today;
   
-  // ステージを更新
+  // Update stage
   const currentMarketCap = calculateCompanyMarketCap(company);
   company.stage = determineCompanyStage(currentMarketCap);
   
   return company;
 }
 
-// 会社を作成（新しい要件に合わせて更新）
+// Create company (updated for new requirements)
 export function createCompany(
   name: string,
   description: string,
@@ -198,7 +198,7 @@ export function createCompany(
   ownerMarketCap: number,
   ownerRank: Rank
 ): { success: boolean; company?: Company; error?: string } {
-  // 設立条件をチェック
+  // Check establishment requirements
   const requirements = checkCompanyCreationRequirements(ownerMarketCap, ownerRank);
   if (!requirements.canCreate) {
     return {
@@ -207,14 +207,14 @@ export function createCompany(
     };
   }
   
-  // 出資金をロック（200万円）
+  // Lock capital (2M yen)
   const lockedCapital = CAPITAL_LOCK;
   const availableMarketCap = ownerMarketCap - lockedCapital;
   
   if (availableMarketCap < 0) {
     return {
       success: false,
-      error: '出資金を確保できません',
+      error: 'Cannot secure capital',
     };
   }
   
@@ -236,7 +236,7 @@ export function createCompany(
       {
         userId: ownerId,
         userName: ownerName,
-        marketCap: availableMarketCap, // 出資金を差し引いた時価総額
+        marketCap: availableMarketCap, // Market cap after deducting capital
         givenRespectsToday: 0,
         joinedAt: new Date().toISOString(),
       },
@@ -250,7 +250,7 @@ export function createCompany(
   return { success: true, company: newCompany };
 }
 
-// 会社に参加（ステージ制限を追加）
+// Join company (with stage restrictions)
 export function joinCompany(
   companyId: string,
   userId: string,
@@ -261,22 +261,22 @@ export function joinCompany(
   const company = companies.find((c) => c.id === companyId);
   
   if (!company) {
-    return { success: false, error: '会社が見つかりません' };
+    return { success: false, error: 'Company not found' };
   }
   
   if (company.isBankrupt) {
-    return { success: false, error: 'この会社は倒産しています' };
+    return { success: false, error: 'This company is bankrupt' };
   }
   
-  // 既に参加しているかチェック
+  // Check if already joined
   if (company.members.some((m) => m.userId === userId)) {
-    return { success: false, error: '既に参加しています' };
+    return { success: false, error: 'Already joined' };
   }
   
-  // ステージによる人数制限をチェック
+  // Check member limit by stage
   const maxMembers = STAGE_THRESHOLDS[company.stage].maxMembers;
   if (company.members.length >= maxMembers) {
-    return { success: false, error: `この会社は最大${maxMembers}名までです` };
+    return { success: false, error: `This company can have up to ${maxMembers} members` };
   }
   
   company.members.push({
@@ -297,7 +297,7 @@ export function joinCompany(
   return { success: true };
 }
 
-// 会社から退会
+// Leave company
 export function leaveCompany(userId: string): boolean {
   const companyId = getUserCompanyId(userId);
   if (!companyId) return false;
@@ -307,7 +307,7 @@ export function leaveCompany(userId: string): boolean {
   
   if (!company) return false;
   
-  // オーナーは退会できない（会社を削除する必要がある）
+  // Owner cannot leave (must delete company)
   if (company.ownerId === userId) return false;
   
   company.members = company.members.filter((m) => m.userId !== userId);
@@ -317,12 +317,12 @@ export function leaveCompany(userId: string): boolean {
   return true;
 }
 
-// 会社ランキングを取得（時価総額順）
+// Get company ranking (by market cap)
 export function getCompanyRanking(): Array<Company & { marketCap: number; rank: number }> {
   const companies = getAllCompanies();
   const today = new Date().toISOString().split('T')[0];
   
-  // 倒産チェックを実行
+  // Run bankruptcy check
   const updatedCompanies = companies.map((company) => checkBankruptcy(company, today));
   saveCompanies(updatedCompanies);
   
@@ -331,17 +331,17 @@ export function getCompanyRanking(): Array<Company & { marketCap: number; rank: 
     marketCap: calculateCompanyMarketCap(company),
   }));
   
-  // 時価総額順にソート
+  // Sort by market cap
   companiesWithMarketCap.sort((a, b) => b.marketCap - a.marketCap);
   
-  // ランクを付与
+  // Assign ranks
   return companiesWithMarketCap.map((company, index) => ({
     ...company,
     rank: index + 1,
   }));
 }
 
-// 会社のラベルを取得
+// Get company label
 export function getCompanyLabel(marketCap: number, rank: number, stage: CompanyStage): string {
   if (rank === 1 && stage === "unicorn") return "伝説のユニコーン企業";
   if (stage === "unicorn") return "ユニコーン企業";
@@ -351,7 +351,7 @@ export function getCompanyLabel(marketCap: number, rank: number, stage: CompanyS
   return "スタートアップ";
 }
 
-// ユーザーの会社内での貢献度を計算
+// Calculate user's contribution within company
 export function calculateContribution(userId: string, company: Company): {
   percentage: number;
   rank: number;
@@ -362,14 +362,14 @@ export function calculateContribution(userId: string, company: Company): {
   const totalMarketCap = company.members.reduce((sum, m) => sum + m.marketCap, 0);
   const percentage = totalMarketCap > 0 ? (member.marketCap / totalMarketCap) * 100 : 0;
   
-  // 社内ランク（時価総額順）
+  // Internal rank (by market cap)
   const sortedMembers = [...company.members].sort((a, b) => b.marketCap - a.marketCap);
   const rank = sortedMembers.findIndex((m) => m.userId === userId) + 1;
   
   return { percentage, rank };
 }
 
-// 会社のメンバー情報を更新（時価総額やノルマ進捗）
+// Update company member information (market cap and quota progress)
 export function updateCompanyMember(
   companyId: string,
   userId: string,
@@ -396,7 +396,7 @@ export function updateCompanyMember(
   return true;
 }
 
-// ステージ名を日本語で取得
+// Get stage name in Japanese
 export function getStageName(stage: CompanyStage): string {
   switch (stage) {
     case "startup":

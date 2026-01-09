@@ -1,4 +1,4 @@
-// Supabase投資（Respect）管理ユーティリティ
+// Supabase Investment (Respect) Management Utility
 
 import { supabase } from "../../lib/supabase";
 
@@ -18,7 +18,7 @@ export interface CreateRespectData {
   amount: number;
 }
 
-// 投資を記録
+// Record investment
 export async function createRespect(data: CreateRespectData): Promise<Respect | null> {
   try {
     const { data: respect, error } = await supabase
@@ -32,7 +32,7 @@ export async function createRespect(data: CreateRespectData): Promise<Respect | 
       return null;
     }
 
-    // 相手のmarket_capを更新
+    // Update recipient's market_cap
     await updateUserMarketCap(data.to_user_id, data.amount);
 
     return respect;
@@ -42,10 +42,10 @@ export async function createRespect(data: CreateRespectData): Promise<Respect | 
   }
 }
 
-// ユーザーのmarket_capを更新
+// Update user's market_cap
 export async function updateUserMarketCap(userId: string, increment: number): Promise<boolean> {
   try {
-    // 現在のmarket_capを取得
+    // Get current market_cap
     const { data: user, error: fetchError } = await supabase
       .from("users")
       .select("market_cap")
@@ -59,7 +59,7 @@ export async function updateUserMarketCap(userId: string, increment: number): Pr
 
     const newMarketCap = (user.market_cap || 0) + increment;
 
-    // market_capを更新
+    // Update market_cap
     const { error: updateError } = await supabase
       .from("users")
       .update({ market_cap: newMarketCap })
@@ -77,7 +77,7 @@ export async function updateUserMarketCap(userId: string, increment: number): Pr
   }
 }
 
-// ユーザーが特定の投稿に投資したかチェック
+// Check if user has invested in specific post
 export async function hasRespectedPost(fromUserId: string, postId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
@@ -99,7 +99,7 @@ export async function hasRespectedPost(fromUserId: string, postId: string): Prom
   }
 }
 
-// 投稿に対する投資数を取得
+// Get investment count for post
 export async function getRespectCount(postId: string): Promise<number> {
   try {
     const { count, error } = await supabase

@@ -155,7 +155,7 @@ export default function ProfileEditModal({
             <textarea
               value={vision}
               onChange={(e) => setVision(e.target.value)}
-              placeholder="自己紹介テキストを入力"
+              placeholder="Enter self-introduction text"
               rows={4}
               className="w-full px-4 py-3 bg-black border border-gray-800 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 resize-none"
             />

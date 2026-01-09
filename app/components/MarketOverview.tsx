@@ -3,9 +3,9 @@
 import { TrendingUp, BarChart3 } from "lucide-react";
 
 export default function MarketOverview() {
-  // ダミーデータ
-  const totalTradingVolume = 12500000000; // 125億円
-  const marketSentiment = 72; // 72%が強気
+  // Dummy data
+  const totalTradingVolume = 12500000000; // 12.5 billion yen
+  const marketSentiment = 72; // 72% bullish
 
   return (
     <div className="bg-black border-b border-gray-800 p-4 shadow-lg">
@@ -18,7 +18,7 @@ export default function MarketOverview() {
         </div>
         
         <div className="grid grid-cols-2 gap-4">
-          {/* 総投資量 */}
+          {/* Total Trading Volume */}
           <div className="bg-gray-900 rounded-lg p-3 border border-gray-800">
             <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">
               Total Trading Volume
@@ -31,7 +31,7 @@ export default function MarketOverview() {
             </div>
           </div>
 
-          {/* 市場感情 */}
+          {/* Market Sentiment */}
           <div className="bg-gray-900 rounded-lg p-3 border border-gray-800">
             <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">
               Market Sentiment

@@ -1,4 +1,4 @@
-// Supabase投稿管理ユーティリティ
+// Supabase Post Management Utility
 
 import { supabase } from "../../lib/supabase";
 
@@ -9,7 +9,7 @@ export interface Post {
   impact_amount: number;
   created_at?: string;
   updated_at?: string;
-  // その他のカラム（必要に応じて）
+  // Other columns (as needed)
   [key: string]: any;
 }
 
@@ -19,12 +19,12 @@ export interface CreatePostData {
   impact_amount: number;
 }
 
-// 投稿を作成
+// Create post
 export async function createPost(data: CreatePostData): Promise<Post | null> {
   try {
     console.log("[Supabase] Creating post with data:", {
       content: data.content.substring(0, 50) + "...",
-      image_url: data.image_url || "なし",
+      image_url: data.image_url || null,
       impact_amount: data.impact_amount,
     });
 
@@ -58,7 +58,7 @@ export async function createPost(data: CreatePostData): Promise<Post | null> {
   }
 }
 
-// 投稿一覧を取得（新しい順）
+// Get post list (newest first)
 export async function getPosts(limit: number = 50): Promise<Post[]> {
   try {
     const { data, error } = await supabase
@@ -86,10 +86,10 @@ export async function getPosts(limit: number = 50): Promise<Post[]> {
   }
 }
 
-// セクターでフィルタリング（セクターカラムがない場合は全件取得）
+// Filter by sector (if sector column doesn't exist, get all)
 export async function getPostsBySector(sector: string, limit: number = 50): Promise<Post[]> {
   try {
-    // セクターカラムが存在しない場合は全件取得
+    // If sector column doesn't exist, get all
     const { data, error } = await supabase
       .from("posts")
       .select("*")
@@ -115,7 +115,7 @@ export async function getPostsBySector(sector: string, limit: number = 50): Prom
   }
 }
 
-// 投稿をIDで取得
+// Get post by ID
 export async function getPostById(id: string): Promise<Post | null> {
   try {
     const { data, error } = await supabase

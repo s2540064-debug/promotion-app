@@ -102,7 +102,7 @@ export default function ImpactCard({
 
     try {
       // Supabaseに投資を記録
-      const respectAmount = marketCapImpact; // 投資額は投稿のインパクト額
+      const respectAmount = marketCapImpact; // Investment amount is the post's impact amount
       const respect = await createRespect({
         from_user_id: "current_user",
         to_user_id: userId,
@@ -163,10 +163,10 @@ export default function ImpactCard({
         </div>
       )}
 
-      {/* パーティクルエフェクト */}
+      {/* Particle effect */}
       <ParticleEffect trigger={particleTrigger} />
 
-      {/* フローティングテキスト */}
+      {/* Floating text */}
       {floatingText.trigger && (
         <FloatingText
           text={floatingText.text}

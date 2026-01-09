@@ -1,21 +1,21 @@
-// 時価総額システムのユーティリティ
+// Market Cap System Utility
 
 export interface UserMarketData {
-  marketCap: number; // 時価総額
-  receivedRespects: number; // 受け取ったRespect総数
-  givenRespectsToday: number; // 今日送ったRespect数
-  lastCheckDate: string; // 最後にチェックした日付 (YYYY-MM-DD)
-  dailyRespects: Record<string, number>; // 日付ごとのRespect送信数 { "2024-01-01": 3 }
+  marketCap: number; // Market cap
+  receivedRespects: number; // Total received respects
+  givenRespectsToday: number; // Respects sent today
+  lastCheckDate: string; // Last check date (YYYY-MM-DD)
+  dailyRespects: Record<string, number>; // Daily respect count { "2024-01-01": 3 }
 }
 
-const DAILY_QUOTA = 3; // 1日のノルマ
-const PENALTY_RATE = 0.3; // 30%のペナルティ
+const DAILY_QUOTA = 3; // Daily quota
+const PENALTY_RATE = 0.3; // 30% penalty
 
-// 初期データ
+// Initial data
 export function getInitialMarketData(): UserMarketData {
   const today = new Date().toISOString().split('T')[0];
   return {
-    marketCap: 1000, // 初期時価総額
+    marketCap: 1000, // Initial market cap
     receivedRespects: 0,
     givenRespectsToday: 0,
     lastCheckDate: today,
@@ -23,7 +23,7 @@ export function getInitialMarketData(): UserMarketData {
   };
 }
 
-// localStorageからデータを読み込む
+// Load data from localStorage
 export function loadMarketData(): UserMarketData {
   if (typeof window === 'undefined') return getInitialMarketData();
   
@@ -32,10 +32,10 @@ export function loadMarketData(): UserMarketData {
   
   try {
     const data = JSON.parse(stored);
-    // 今日の日付を取得
+    // Get today's date
     const today = new Date().toISOString().split('T')[0];
     
-    // 日付が変わった場合の処理
+    // Handle date change
     if (data.lastCheckDate !== today) {
       return checkDailyQuota(data, today);
     }
@@ -46,13 +46,13 @@ export function loadMarketData(): UserMarketData {
   }
 }
 
-// データを保存
+// Save data
 export function saveMarketData(data: UserMarketData): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem('promotion_market_data', JSON.stringify(data));
 }
 
-// 日次ノルマチェックとペナルティ適用
+// Daily quota check and penalty application
 function checkDailyQuota(data: UserMarketData, today: string): UserMarketData {
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
     .toISOString()
@@ -61,12 +61,12 @@ function checkDailyQuota(data: UserMarketData, today: string): UserMarketData {
   const yesterdayRespects = data.dailyRespects[yesterday] || 0;
   const oldMarketCap = data.marketCap;
   
-  // ノルマ未達成の場合、時価総額を30%ダウン
+  // If quota not met, reduce market cap by 30%
   if (yesterdayRespects < DAILY_QUOTA) {
     const penalty = data.marketCap * PENALTY_RATE;
     data.marketCap = Math.max(100, Math.floor(data.marketCap - penalty));
     
-    // 階級降格のチェック（時価総額が下がった場合）
+    // Check for rank demotion (when market cap decreases)
     const { demoted, oldRank, newRank } = checkRankDemotion(
       oldMarketCap,
       data.marketCap,
@@ -74,16 +74,16 @@ function checkDailyQuota(data: UserMarketData, today: string): UserMarketData {
     );
     
     if (demoted) {
-      // 階級降格の通知（実際の実装では、トースト通知などで表示）
-      console.log(`階級降格: ${oldRank} → ${newRank}`);
+      // Rank demotion notification (in actual implementation, show toast notification)
+      console.log(`Rank demotion: ${oldRank} → ${newRank}`);
     }
   }
   
-  // 今日のデータをリセット
+  // Reset today's data
   data.givenRespectsToday = 0;
   data.lastCheckDate = today;
   
-  // 古い日付のデータをクリーンアップ（30日以上前）
+  // Clean up old date data (older than 30 days)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0];
@@ -97,14 +97,14 @@ function checkDailyQuota(data: UserMarketData, today: string): UserMarketData {
   return data;
 }
 
-// 投資を受け取った時の処理（時価総額上昇）
+// Handle receiving investment (market cap increase)
 export function receiveRespect(amount: number = 1): UserMarketData {
   const data = loadMarketData();
   data.receivedRespects += amount;
   
-  // 市場不況モードを適用
+  // Apply market crash mode
   const { applyMarketCrashMultiplier } = require('./marketCrash');
-  const baseGrowth = amount * 10; // 1投資 = 10時価総額
+  const baseGrowth = amount * 10; // 1 investment = 10 market cap
   const adjustedGrowth = applyMarketCrashMultiplier(baseGrowth);
   
   data.marketCap += Math.floor(adjustedGrowth);
@@ -112,12 +112,12 @@ export function receiveRespect(amount: number = 1): UserMarketData {
   return data;
 }
 
-// Respectを送信した時の処理
+// Handle sending respect
 export function sendRespect(): UserMarketData {
   const data = loadMarketData();
   const today = new Date().toISOString().split('T')[0];
   
-  // 今日の日付が変わった場合、チェックを実行
+  // If date changed, run check
   if (data.lastCheckDate !== today) {
     const updated = checkDailyQuota(data, today);
     data.givenRespectsToday = 1;
@@ -133,18 +133,18 @@ export function sendRespect(): UserMarketData {
   return data;
 }
 
-// 時価総額から階級を計算（既存のrank.tsと統合）
+// Calculate rank from market cap (integrated with existing rank.ts)
 import { calculateRank, type Rank } from './rank';
 
 export function getRankFromMarketCap(marketCap: number, receivedRespects: number, postCount: number = 0): Rank {
-  // 時価総額をスコアに変換
-  // 時価総額 = 受け取ったRespect数 * 10 なので、逆算してリスペクト数を取得
-  // より正確には、時価総額から直接スコアを計算
+  // Convert market cap to score
+  // Market cap = received respects * 10, so calculate respect count inversely
+  // More accurately, calculate score directly from market cap
   const respectCount = Math.max(receivedRespects, Math.floor(marketCap / 10));
   return calculateRank(postCount, respectCount);
 }
 
-// 時価総額が下がった時に階級が降格するかチェック
+// Check if rank demotion occurs when market cap decreases
 export function checkRankDemotion(
   oldMarketCap: number,
   newMarketCap: number,
@@ -154,7 +154,7 @@ export function checkRankDemotion(
   const oldRank = getRankFromMarketCap(oldMarketCap, receivedRespects, postCount);
   const newRank = getRankFromMarketCap(newMarketCap, receivedRespects, postCount);
   
-  // 階級のインデックスを比較
+  // Compare rank indices
   const rankOrder: Rank[] = ["新人", "主任", "係長", "課長", "部長", "役員", "社長", "会長"];
   const oldIndex = rankOrder.indexOf(oldRank);
   const newIndex = rankOrder.indexOf(newRank);
@@ -166,7 +166,7 @@ export function checkRankDemotion(
   };
 }
 
-// ノルマ達成率を計算
+// Calculate quota progress
 export function getQuotaProgress(): { current: number; quota: number; percentage: number } {
   const data = loadMarketData();
   return {
@@ -176,13 +176,13 @@ export function getQuotaProgress(): { current: number; quota: number; percentage
   };
 }
 
-// ノルマ未達成警告の判定
+// Determine if quota warning should be shown
 export function shouldShowWarning(): boolean {
   const progress = getQuotaProgress();
   const now = new Date();
   const hours = now.getHours();
   
-  // 18時以降で、まだノルマ未達成の場合に警告
+  // Show warning after 6 PM if quota not met
   return hours >= 18 && progress.current < progress.quota;
 }
 

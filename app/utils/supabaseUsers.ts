@@ -1,4 +1,4 @@
-// Supabaseユーザー管理ユーティリティ
+// Supabase User Management Utility
 
 import { supabase } from "../../lib/supabase";
 
@@ -12,7 +12,7 @@ export interface User {
   updated_at: string;
 }
 
-// ユーザー情報を取得
+// Get user information
 export async function getUserById(userId: string): Promise<User | null> {
   try {
     const { data, error } = await supabase
@@ -33,7 +33,7 @@ export async function getUserById(userId: string): Promise<User | null> {
   }
 }
 
-// ユーザー情報を更新
+// Update user information
 export async function updateUser(userId: string, updates: Partial<User>): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -53,16 +53,16 @@ export async function updateUser(userId: string, updates: Partial<User>): Promis
   }
 }
 
-// ユーザーを作成または取得
+// Create or get user
 export async function getOrCreateUser(userId: string, userName: string): Promise<User | null> {
   try {
-    // 既存ユーザーを取得
+    // Get existing user
     const existingUser = await getUserById(userId);
     if (existingUser) {
       return existingUser;
     }
 
-    // 新規ユーザーを作成
+    // Create new user
     const { data, error } = await supabase
       .from("users")
       .insert([

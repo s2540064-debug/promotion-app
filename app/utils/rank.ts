@@ -1,4 +1,4 @@
-// 階級定義（昇格順）
+// Rank definitions (in promotion order)
 export const RANKS = [
   "新人",
   "主任",
@@ -12,8 +12,8 @@ export const RANKS = [
 
 export type Rank = (typeof RANKS)[number];
 
-// 階級計算の基準値（投稿数とリスペクト数の合計スコアで判定）
-// スコア = 投稿数 * 1 + リスペクト数 * 2
+// Rank calculation criteria (based on total score of posts and respects)
+// Score = post count * 1 + respect count * 2
 export function calculateRank(
   postCount: number,
   respectCount: number
@@ -30,11 +30,11 @@ export function calculateRank(
   return "新人";
 }
 
-// 階級のスタイル定義
+// Rank style definitions
 export function getRankStyle(rank: Rank): string {
   const baseStyle = "px-3 py-1 rounded-full text-xs font-bold";
   
-  // 部長以上はシャンパンゴールドやシルバーで高級感
+  // Manager and above use champagne gold and silver for luxury feel
   switch (rank) {
     case "会長":
       return `${baseStyle} bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-lg shadow-yellow-500/50`;
