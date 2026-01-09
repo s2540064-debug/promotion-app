@@ -41,11 +41,11 @@ export default function PlayerRankingCard() {
               <div className="flex items-center gap-2 flex-1">
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                    player.rank === 1
+                    player.rank === "1"
                       ? "bg-[#FFD700] text-black"
-                      : player.rank === 2
+                      : player.rank === "2"
                       ? "bg-[#C0C0C0] text-black"
-                      : player.rank === 3
+                      : player.rank === "3"
                       ? "bg-[#CD7F32] text-black"
                       : "bg-gray-700 text-white"
                   }`}

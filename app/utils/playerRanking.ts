@@ -61,7 +61,7 @@ export function getAllPlayers(): PlayerData[] {
 }
 
 // ランキングを取得（時価総額順）
-export function getPlayerRanking(): Array<Omit<PlayerData, 'rank'> & { rank: string; changeRate: number }> {
+export function getPlayerRanking(): Array<PlayerData & { changeRate: number }> {
   const players = getAllPlayers();
   
   // 時価総額順にソート
