@@ -234,9 +234,9 @@ export default function ImpactCard({
           </p>
         </div>
         
-        {/* 小さなチャート（スパークライン） */}
-        <div className="w-1/2 h-12 relative">
-          <ResponsiveContainer width="100%" height="100%">
+        {/* Small chart (sparkline) */}
+        <div className="w-1/2 h-12 min-h-[48px] relative">
+          <ResponsiveContainer width="100%" height="100%" minHeight={48}>
             <LineChart data={baseChartData}>
               <Line 
                 type="monotone" 

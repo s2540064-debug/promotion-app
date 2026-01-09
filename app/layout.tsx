@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { MarketProvider } from "./contexts/MarketContext";
+import { CompanyProvider } from "./contexts/CompanyContext";
 import InvestmentNotificationManager from "./components/InvestmentNotificationManager";
 
 const geistSans = Geist({
@@ -36,8 +37,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${notoSerif.variable} antialiased`}
       >
         <MarketProvider>
-          <InvestmentNotificationManager />
-          {children}
+          <CompanyProvider>
+            <InvestmentNotificationManager />
+            {children}
+          </CompanyProvider>
         </MarketProvider>
       </body>
     </html>
