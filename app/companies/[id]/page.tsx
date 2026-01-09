@@ -1,14 +1,14 @@
 "use client";
 
 import { use } from "react";
-import BottomNavigation from "../../../components/BottomNavigation";
-import ImpactCard from "../../../components/ImpactCard";
-import CompanyDashboard from "../../../components/CompanyDashboard";
-import { useCompany } from "../../../contexts/CompanyContext";
-import { calculateRank } from "../../../utils/rank";
-import { calculateContribution, calculateCompanyMarketCap } from "../../../utils/company";
+import BottomNavigation from "../../components/BottomNavigation";
+import ImpactCard from "../../components/ImpactCard";
+import CompanyDashboard from "../../components/CompanyDashboard";
+import { useCompany } from "../../contexts/CompanyContext";
+import { calculateRank } from "../../utils/rank";
+import { calculateContribution, calculateCompanyMarketCap } from "../../utils/company";
 import { Building2, Users, TrendingUp } from "lucide-react";
-import { useMarket } from "../../../contexts/MarketContext";
+import { useMarket } from "../../contexts/MarketContext";
 
 export default function CompanyDetailPage({
   params,
@@ -18,7 +18,7 @@ export default function CompanyDetailPage({
   const { id } = use(params);
   const { companies } = useCompany();
   const { marketData } = useMarket();
-  const company = companies.find((c) => c.id === id);
+  const company = companies.find((c: { id: string }) => c.id === id);
 
   if (!company) {
     return (
@@ -39,7 +39,7 @@ export default function CompanyDetailPage({
   const companyMarketCap = calculateCompanyMarketCap(company);
 
   // サンプル投稿データ（実際の実装では、会社メンバーの投稿を取得）
-  const companyPosts = company.members.map((member, index) => ({
+  const companyPosts = company.members.map((member: { userId: string; userName: string; marketCap: number }, index: number) => ({
     id: `post_${member.userId}_${index}`,
     userId: member.userId,
     userName: member.userName,
@@ -47,6 +47,7 @@ export default function CompanyDetailPage({
     content: `${member.userName}の投稿です。会社の成長に貢献しています！`,
     likes: Math.floor(member.marketCap / 100),
     timestamp: `${index + 1}時間前`,
+    marketCapImpact: Math.floor(member.marketCap / 10),
   }));
 
   // 現在のユーザーの貢献度を計算
@@ -101,8 +102,8 @@ export default function CompanyDetailPage({
         </div>
         <div className="space-y-2">
           {company.members
-            .sort((a, b) => b.marketCap - a.marketCap)
-            .map((member, index) => (
+            .sort((a: { marketCap: number }, b: { marketCap: number }) => b.marketCap - a.marketCap)
+            .map((member: { userId: string; userName: string; marketCap: number; givenRespectsToday: number }, index: number) => (
               <div
                 key={member.userId}
                 className="flex items-center justify-between p-2 bg-gray-900/50 rounded-lg"
@@ -139,7 +140,7 @@ export default function CompanyDetailPage({
             まだ投稿がありません
           </p>
         ) : (
-          companyPosts.map((post) => (
+          companyPosts.map((post: { id: string; userId: string; userName: string; rank: string; content: string; likes: number; timestamp: string; marketCapImpact: number }) => (
             <ImpactCard key={post.id} {...post} />
           ))
         )}
