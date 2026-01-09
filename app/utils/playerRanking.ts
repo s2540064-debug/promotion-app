@@ -61,7 +61,7 @@ export function getAllPlayers(): PlayerData[] {
 }
 
 // ランキングを取得（時価総額順）
-export function getPlayerRanking(): Array<PlayerData & { rank: number; changeRate: number }> {
+export function getPlayerRanking(): Array<Omit<PlayerData, 'rank'> & { rank: string; changeRate: number }> {
   const players = getAllPlayers();
   
   // 時価総額順にソート
@@ -76,7 +76,7 @@ export function getPlayerRanking(): Array<PlayerData & { rank: number; changeRat
     
     return {
       ...player,
-      rank: index + 1,
+      rank: (index + 1).toString(),
       changeRate,
     };
   });
@@ -86,6 +86,6 @@ export function getPlayerRanking(): Array<PlayerData & { rank: number; changeRat
 export function getCurrentUserRank(): number {
   const ranking = getPlayerRanking();
   const currentUser = ranking.find((p) => p.userId === "current_user");
-  return currentUser?.rank || 0;
+  return currentUser ? parseInt(currentUser.rank) || 0 : 0;
 }
 
